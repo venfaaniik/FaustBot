@@ -4,6 +4,7 @@ from discord.ext.commands import Bot
 from discord.voice_client import VoiceClient
 import asyncio
 import time
+from datetime import datetime
 import random
 from random import choice
 import sys
@@ -12,6 +13,8 @@ PREFIX = ">"
 bot = commands.Bot(command_prefix=PREFIX)
 TOKEN = "NzMwNDQyODExNzY5NDg3NDIw.XwXk0Q.qnEv4yi0L-3XBVNNv6Rlq4qOScs"
 wagons = 0
+casualties = 0
+shutup = False
 
 @bot.event
 async def on_ready():
@@ -23,9 +26,14 @@ async def on_ready():
 
 @bot.event
 async def on_message(msg):
+    global shutup
+    shutupChannel = channel = bot.get_channel(732387992727060522)
     faustDread = '<:faust_dread:731300962916106272>'
 
     if msg.author == bot.user:
+        return
+
+    if shutup == True and msg.author != 128440902468370432 and shutupChannel != msg.channel:
         return
     
     if msg.guild is None and msg.author != bot.user:
@@ -154,26 +162,36 @@ async def on_message(msg):
 
     if ("tent") in content:
         percent = random.randint(0, 100)
-        if percent == 0:
+        bigassLine = random.randint(0,10000)
+        if ("wank") in content:
             possible_responses = [
-                "I would love to insult you but I'm afraid I won't do as well as nature did.",
-                "Do you get invited to many parties?",
-                "You're not worth the dirt to bury you in.",
-                "You're not worth the energy it'd take to disintegrate you with a simple spell.",
+                "That's just... disgusting",
+                "What the fuck."
             ]
             await msg.channel.send(random.choice(possible_responses))
         else:
-            possible_responses = [
-                "I don't know what you're talking about",
-                "I am looking away",
-                "I do not see it",
-                "It was the wine",
-                "It was the wind, I swear",
-                "It was the other guy over there",
-                "Tent? What tent?",
-                "Tent? Haven't seen any of those here"
-            ]
-            await msg.channel.send(random.choice(possible_responses))
+            if percent == 0:
+                possible_responses = [
+                    "I would love to insult you but I'm afraid I won't do as well as nature did.",
+                    "Do you get invited to many parties?",
+                    "You're not worth the dirt to bury you in.",
+                    "You're not worth the energy it'd take to disintegrate you with a simple spell.",
+                ]
+                await msg.channel.send(random.choice(possible_responses))
+            if bigassLine == 1999:
+                await msg.channel.send("Tell me, why do you keep saying that word? I feel like it's everywhere: In the wind that carries your awful smell, in the ground that eventually shall take your cold body, even in the fire that shall burn you. Would you be kind and stop using this word, 'Tent'. I do not wish to hear it anymore from that filthy mouth of yours. Next time I'll remove your... speaking priviledges.")   
+            else:
+                possible_responses = [
+                    "I don't know what you're talking about",
+                    "I am looking away",
+                    "I do not see it",
+                    "It was the wine",
+                    "It was the wind, I swear",
+                    "It was the other guy over there",
+                    "Tent? What tent?",
+                    "Tent? Haven't seen any of those here"
+                ]
+                await msg.channel.send(random.choice(possible_responses))
 
     if content == ("❤️"):
         await msg.channel.send("❤️")
@@ -181,8 +199,24 @@ async def on_message(msg):
     if content.startswith("bonk"):
         await msg.channel.send("", file=discord.File("fucker.gif"))
 
+    if any([keyword in content for keyword in ('shut up faust', 'silence faust', 'shut up, faust', 'silence, faust', 'SILENCEFSUST', 'shut the fuck up faust')]):
+        await msg.channel.send("Fine. Silent treatment it is then.")
+        shutup = True
+        shutupChannel = bot.get_channel(msg.channel)
+        await shutupTimer()
+        return
+
     #without this the commands wont. work. at all. no touching
     await bot.process_commands(msg)
+
+async def shutupTimer():
+    global shutup
+    timer = 60
+    print("Shutting up for " + str(timer) + " seconds")
+    await asyncio.sleep(timer) #Sleep for x before updating
+    print("No longer silenced")
+    shutup = False
+    return
 
 @bot.event
 async def on_member_join(member):
@@ -193,6 +227,7 @@ async def on_member_join(member):
 
 @bot.command()
 async def DM(ctx, arg, *, message):
+    """DM an user, must give ID"""
     user_id = (arg)
     user = await bot.fetch_user(user_id)
     if ctx.author.id == 128440902468370432:
@@ -201,18 +236,22 @@ async def DM(ctx, arg, *, message):
         await ctx.send("How far are you willing to go to get this power of mine?")
     else:
         await ctx.send("Sorry sweetheart, can't do it for you")
+    await ctx.message.delete()
 
 @bot.command()
 async def DMuser(ctx, user: discord.Member, *, message):
+    """DM an user, must mention"""
     if ctx.author.id == 128440902468370432:
         await user.send(message)
     elif ctx.author.id == 250389319884210196:
         await ctx.send("There is only one being with this kind of power and it is not you.")
     else:
         await ctx.send("Sorry sweetheart, can't do it for you")
+    await ctx.message.delete()
 
 @bot.command()
 async def sendTo(ctx, arg, *, message):
+    """Sends a message to a channel"""
     if ctx.author.id == 128440902468370432:
         #channel = bot.get_channel(730444242836652042)
         arg = int(arg)
@@ -222,9 +261,22 @@ async def sendTo(ctx, arg, *, message):
         await ctx.send("This is something that not even Gods should meddle with.")
     else:
         await ctx.send("Sorry sweetheart, can't do it for you")
+    await ctx.message.delete()
 
 @bot.command()
+async def say(ctx, *, message):
+    """Say something to the current channel as Faust"""
+    if ctx.author.id == 128440902468370432:
+        await ctx.send(message)
+    elif ctx.author.id == 250389319884210196:
+        await ctx.send("This is something that not even Gods should meddle with.")
+    else:
+        await ctx.send("Sorry sweetheart, can't do it for you")
+    await ctx.message.delete()
+    
+@bot.command()
 async def join(ctx):
+    """Join voice chat... currently only a channel called General"""
     voicechannel = discord.utils.get(ctx.guild.channels, name='General')
     vc = await voicechannel.connect()
     vc.play(discord.FFmpegPCMAudio("testing.mp3"), after=lambda e: print('done', e))
@@ -232,6 +284,7 @@ async def join(ctx):
 #do it like that you can requets for others' playlists too
 @bot.command()
 async def playlist(ctx, arg):
+    """Gives Faust playlists kek"""
     if arg=="youtube":
         await ctx.send("https://www.youtube.com/playlist?list=PLQhLL9WuSGAZA-V3mRK6YQYJO_7VWlylV")
     elif arg == "spotify":
@@ -241,6 +294,7 @@ async def playlist(ctx, arg):
     
 @bot.command()
 async def info(ctx, user: discord.Member):
+    """Gives information about an user"""
     if user is not None:
         await ctx.send("The users name is: {}".format(user.name))
         await ctx.send("The users id is: {}".format(user.id))
@@ -253,6 +307,7 @@ async def info(ctx, user: discord.Member):
 #dice throw test
 @bot.command(name='roll', aliases=['r'])
 async def roll(ctx, dice: str):
+    """Roll NdN"""
     rollsList = []
     resultTotal = 0
     try: 
@@ -265,11 +320,13 @@ async def roll(ctx, dice: str):
         rollsList.append(temp)
         resultTotal += temp
     rollsList = bolding(rollsList, limit)
-    await ctx.send("Your roll: (" + str(resultTotal) + ") \n (" + str(rollsList).replace("'", "").strip("[]") + ")")
+    await ctx.send("{0.mention}\n".format(ctx.author) + "**Roll:** " + dice + " (" + str(rollsList).replace("'", "").strip("[]") + ")" + "\n**Total**: (" + str(resultTotal) + ")")
+    await ctx.message.delete()
 
 #higher
 @bot.command()
 async def roII(ctx, dice: str):
+    """High roll-cheat"""
     rollsList = []
     resultTotal = 0
     cheat = 1
@@ -289,11 +346,13 @@ async def roII(ctx, dice: str):
         rollsList.append(temp)
         resultTotal += temp
     rollsList = bolding(rollsList, limit)
-    await ctx.send("Your roll: (" + str(resultTotal) + ") \n (" + str(rollsList).replace("'", "").strip("[]") + ")")
+    await ctx.send("{0.mention}\n".format(ctx.author) + "**Roll:** " + dice + " (" + str(rollsList).replace("'", "").strip("[]") + ")" + "\n**Total**: (" + str(resultTotal) + ")")
+    await ctx.message.delete()
 
 #lower
 @bot.command()
 async def rolI(ctx, dice: str):
+    """Low roll-cheat"""
     rollsList = []
     resultTotal = 0
     cheat = 1
@@ -313,17 +372,28 @@ async def rolI(ctx, dice: str):
         resultTotal += temp
 
     rollsList = bolding(rollsList, limit)
-    await ctx.send("Your roll: (" + str(resultTotal) + ") \n (" + str(rollsList).replace("'", "").strip("[]") + ")")
+    await ctx.send("{0.mention}\n".format(ctx.author) + "**Roll:** " + dice + " (" + str(rollsList).replace("'", "").strip("[]") + ")" + "\n**Total**: (" + str(resultTotal) + ")")
+    await ctx.message.delete()
 
 @bot.command()
 async def w(ctx):
+    """Drops the current amount of levitating wagons"""
+    global casualties
     print("wagons: " + str(wagons))
     resultTotal = unaSaves = totalDead = 0
     for x in range(int(wagons)):
         resultTotal += random.randint(1, 10)
-    unaSaves = random.randint(1, resultTotal)
+    unaSaves = random.randint(0, resultTotal)
     totalDead = (resultTotal - unaSaves)
-    await ctx.send("Dropped wagons: " + str(wagons) + "\nCollateral damage: (" + str(resultTotal) + ") \nUna manages to save: (" + str(unaSaves) + "). Good job! \nTotal dead: (" + str(totalDead) + "). F to them.")
+    casualties += totalDead
+
+    if unaSaves == resultTotal:
+        await ctx.send("Dropped wagons: " + str(wagons) + "\nCollateral damage: (" + str(resultTotal) + ") \nUna manages to save: (" + str(unaSaves) + "). Holy fuck! \nTotal dead: (" + str(totalDead) + "). BUFF UNA")
+    elif unaSaves == 0:
+        await ctx.send("Dropped wagons: " + str(wagons) + "\nCollateral damage: (" + str(resultTotal) + ") \nUna manages to save: (" + str(unaSaves) + "). Una wtf \nTotal dead: (" + str(totalDead) + "). Wake up next time!")
+    else:
+        await ctx.send("Dropped wagons: " + str(wagons) + "\nCollateral damage: (" + str(resultTotal) + ") \nUna manages to save: (" + str(unaSaves) + "). Good job! \nTotal dead: (" + str(totalDead) + "). F to them.")
+    await ctx.message.delete()
 
 def bolding(rollList, limit):
     tempList = []
@@ -341,50 +411,56 @@ def bolding(rollList, limit):
     return tempList
 
 # FAUST THE BAAAARD?
-
 @bot.command()
 async def stop(self, ctx):
     """Stops and disconnects the bot from voice"""
     await ctx.voice_client.disconnect()
+
+@bot.command()
+async def date(ctx):
+    date = int(datetime.today().strftime('%Y%m%d'))
+    rooted = date**2
+    await ctx.send("Today is √" + str(rooted))
 
 
 async def background_loop():
     await bot.wait_until_ready()
     print("background_loop initialized")
     global wagons
+    guild = bot.get_guild(458318646108749824)
     wagons = random.randint(1, 3)
     #wagons = 11
     while True:
         wagons += random.randint(1,10)
         #print("wagons: " + str(wagons))
         #channel = bot.get_channel("632372863495700519") 
-        randMsg = random.randint(1, 8)
+        randMsg = random.randint(1, 9)
         if randMsg == 1:
-            #wagons
             await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= str(wagons) + " wagons levitating."))
         elif randMsg == 2:
-            #listening
             await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name = "his own beautiful voice."))
         elif randMsg == 3:
-            #playing
             await bot.change_presence(activity=discord.Game(name="with fire."))
         elif randMsg == 4:
-            #playing2
-            await bot.change_presence(activity=discord.Game(name="Gwent again and losing."))
+            winning = random.randint(0, 500)
+            if (winning == 0):
+                await bot.change_presence(activity=discord.Game(name="Gwent again and winning."))
+            else:
+                await bot.change_presence(activity=discord.Game(name="Gwent again and losing."))
         elif randMsg == 5:
-            guild = bot.get_guild(458318646108749824)
             user = choice(guild.members)
             await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= "{}".format(user.display_name)))
         elif randMsg == 6:
-            guild = bot.get_guild(458318646108749824)
             user = choice(guild.members)
             await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= "{}".format(user.display_name) +  " from afar ( ͡◉ ͜ʖ ͡◉)"))
         elif randMsg == 7:
-            guild = bot.get_guild(458318646108749824)
             user = choice(guild.members)
-            await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= "{}".format(user.display_name) + " levitating"))
+            await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= "{}".format(user.display_name) + " levitating."))
         elif randMsg == 8:
-            await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= "ALL THE " + str(wagons) + " WAGONS DROPPING."))
+            await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= "ALL THE " + str(wagons) + " WAGONS CRASHING TOWARDS THE GROUND."))
+        elif randMsg == 9:
+            await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name = "the silence of " + str(casualties) + " dead bodies."))
+            print("casualties: " + str(casualties))
         else:
             print("randmsg = " + str(randMsg) + ", it gave an error")
         await asyncio.sleep(120) #Sleep for x before updating
