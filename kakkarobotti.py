@@ -8,20 +8,41 @@ from datetime import datetime
 import random
 from random import choice
 import sys
+import os.path
+from os import path
+from pathlib import Path
+from pypresence import Presence
 
 PREFIX = ">"
 bot = commands.Bot(command_prefix=PREFIX)
-TOKEN = "NzMwNDQyODExNzY5NDg3NDIw.XwXk0Q.qnEv4yi0L-3XBVNNv6Rlq4qOScs"
+TOKEN = "NzMwNDQyODExNzY5NDg3NDIw.XwXj4Q.-o7Uj-M-yyI0u3uUpI46DPPCiyI"
+
+client_id = '730442811769487420'  # Fake ID, put your real one here
+RPC = Presence(client_id)  # Initialize the client class
+RPC.connect() # Start the handshake loop
+
 wagons = 0
 casualties = 0
 shutup = False
+una = False
+bot_check = True
+
+print(RPC.update(state="Hello hello", details="Hello hello, I am details"))  # Set the presence
 
 @bot.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(bot))
     print(bot.user.id)
     bot.loop.create_task(background_loop())
+    await richPresence()
     print("Background loop created")
+    if path.exists("casualties.txt"):
+        print("File      Path:", os.path.abspath("casualties.txt"))
+        await readWagons()
+    else:
+        print("File      Path:", os.path.abspath("casualties.txt"))
+        await writeWagons()
+    print(casualties)
     print("------------")
 
 @bot.event
@@ -376,24 +397,30 @@ async def rolI(ctx, dice: str):
     await ctx.message.delete()
 
 @bot.command()
-async def w(ctx):
+async def w(ctx, *args):
     """Drops the current amount of levitating wagons"""
     global casualties
-    print("wagons: " + str(wagons))
+    global bot_check
     resultTotal = unaSaves = totalDead = 0
     for x in range(int(wagons)):
         resultTotal += random.randint(1, 10)
-    unaSaves = random.randint(0, resultTotal)
-    totalDead = (resultTotal - unaSaves)
-    casualties += totalDead
+    casualties +=resultTotal
 
-    if unaSaves == resultTotal:
-        await ctx.send("Dropped wagons: " + str(wagons) + "\nCollateral damage: (" + str(resultTotal) + ") \nUna manages to save: (" + str(unaSaves) + "). Holy fuck! \nTotal dead: (" + str(totalDead) + "). BUFF UNA")
-    elif unaSaves == 0:
-        await ctx.send("Dropped wagons: " + str(wagons) + "\nCollateral damage: (" + str(resultTotal) + ") \nUna manages to save: (" + str(unaSaves) + "). Una wtf \nTotal dead: (" + str(totalDead) + "). Wake up next time!")
-    else:
-        await ctx.send("Dropped wagons: " + str(wagons) + "\nCollateral damage: (" + str(resultTotal) + ") \nUna manages to save: (" + str(unaSaves) + "). Good job! \nTotal dead: (" + str(totalDead) + "). F to them.")
-    await ctx.message.delete()
+    if bot_check:
+        global una
+        una = True
+        unaSaves = random.randint(0, resultTotal)
+        totalDead = (resultTotal - unaSaves)
+        casualties -= unaSaves
+        if unaSaves == resultTotal:
+            await ctx.send("Dropped wagons: " + str(wagons) + "\nCollateral damage: (" + str(resultTotal) + ") \nUna manages to save: (" + str(unaSaves) + "). Holy fuck! \nTotal dead: (" + str(totalDead) + "). BUFF UNA")
+        elif unaSaves == 0:
+            await ctx.send("Dropped wagons: " + str(wagons) + "\nCollateral damage: (" + str(resultTotal) + ") \nUna manages to save: (" + str(unaSaves) + "). Una wtf \nTotal dead: (" + str(totalDead) + "). Wake up next time!")
+        else:
+            await ctx.send("Dropped wagons: " + str(wagons) + "\nCollateral damage: (" + str(resultTotal) + ") \nUna manages to save: (" + str(unaSaves) + "). Good job! \nTotal dead: (" + str(totalDead) + "). F to them.")
+        await ctx.message.delete()
+        bot_check = True
+    await writeWagons()
 
 def bolding(rollList, limit):
     tempList = []
@@ -403,11 +430,9 @@ def bolding(rollList, limit):
         if tempNmb == limit or tempNmb == 1:
             bolded = ("**" + str(tempNmb) + "**")
             tempList.append(bolded)
-            #print(bolded)
         else:
             tempList.append(rollList[i])
         i += 1
-    #print(tempList)
     return tempList
 
 # FAUST THE BAAAARD?
@@ -422,18 +447,14 @@ async def date(ctx):
     rooted = date**2
     await ctx.send("Today is √" + str(rooted))
 
-
 async def background_loop():
     await bot.wait_until_ready()
-    print("background_loop initialized")
     global wagons
+    global bot_check
     guild = bot.get_guild(458318646108749824)
     wagons = random.randint(1, 3)
-    #wagons = 11
     while True:
         wagons += random.randint(1,10)
-        #print("wagons: " + str(wagons))
-        #channel = bot.get_channel("632372863495700519") 
         randMsg = random.randint(1, 9)
         if randMsg == 1:
             await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= str(wagons) + " wagons levitating."))
@@ -460,11 +481,30 @@ async def background_loop():
             await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= "ALL THE " + str(wagons) + " WAGONS CRASHING TOWARDS THE GROUND."))
         elif randMsg == 9:
             await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name = "the silence of " + str(casualties) + " dead bodies."))
-            print("casualties: " + str(casualties))
         else:
             print("randmsg = " + str(randMsg) + ", it gave an error")
         await asyncio.sleep(120) #Sleep for x before updating
         if randMsg == 8:
+            if una == False:
+                bot_check = False
+                await w(wagons)
             wagons = 0
+
+
+async def richPresence():
+    while True:  # The presence will stay on as long as the program is running
+        RPC.update(state="Hello hello", details="Hello hello, I am details")
+        time.sleep(15) # Can only update rich presence every 15 seconds
+
+
+async def writeWagons():
+    f = open("casualties.txt", "w")
+    f.write(str(casualties)) 
+    f.close()
+
+async def readWagons():
+    f = open("casualties.txt", "r")
+    global casualties
+    casualties = int(f.read())
 
 bot.run(TOKEN)
