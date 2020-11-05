@@ -28,7 +28,7 @@ async def on_ready():
     print('We have logged in as {0.user}'.format(bot))
     print(bot.user.id)
     bot.loop.create_task(background_loop())
-    bot.loop.create_task(checkTime())
+    # bot.loop.create_task(checkTime())
     print("Background loop created")
     if path.exists("casualties.txt"):
         print("File      Path:", os.path.abspath("casualties.txt"))
@@ -51,10 +51,9 @@ async def on_message(msg):
 
     if "69" == msg.content:
         await msg.channel.send("Nice.")
-        return
     if "420" == msg.content:
         await msg.channel.send("Blaze it.")
-        return
+    return
 
     if msg.author == bot.user:
         if "69" in msg.content:
@@ -562,17 +561,17 @@ async def readWagons():
     global casualties
     casualties = int(f.read())
 
-async def checkTime():
-    await bot.wait_until_ready()
-    while not bot.is_closed():
-        now = datetime.now()
-        current_time = now.strftime("%H:%M")
-        #print("Current Time =", current_time)
+# async def checkTime():
+#     await bot.wait_until_ready()
+#     while not bot.is_closed():
+#         now = datetime.now()
+#         current_time = now.strftime("%H:%M:%S")
+#         print("Current Time =", current_time)
 
-        if(current_time == '04:20'):  # check if matches with the desired time
-            print('sending message')
-            channel = bot.get_channel(632372863495700519)
-            await channel.send("Blaze it.")
-        await asyncio.sleep(60)
+#         if(current_time == '04:20:00'):  # check if matches with the desired time
+#             print('sending message')
+#             channel = bot.get_channel(632372863495700519)
+#             await channel.send("Blaze it.")
+#         await asyncio.sleep(60)
 
 bot.run(TOKEN)
