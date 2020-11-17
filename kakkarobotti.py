@@ -11,10 +11,12 @@ import sys
 import os.path
 from os import path
 from pathlib import Path
-from pypresence import Presence
 
 PREFIX = ">"
-bot = commands.Bot(command_prefix=PREFIX)
+intents = discord.Intents().default()
+intents.members = True
+bot = commands.Bot(command_prefix=PREFIX, intents=intents)
+
 TOKEN = "NzMwNDQyODExNzY5NDg3NDIw.XwXj4Q.-o7Uj-M-yyI0u3uUpI46DPPCiyI"
 
 wagons = 0
@@ -37,7 +39,6 @@ async def on_ready():
         print("File      Path:", os.path.abspath("casualties.txt"))
         await writeWagons()
     print(casualties)
-    print("shit")
     print("------------")
 
 @bot.event
@@ -433,7 +434,7 @@ async def rolI(ctx, dice: str):
     await ctx.send("{0.mention}\n".format(ctx.author) + "**Roll:** " + dice + " (" + str(rollsList).replace("'", "").strip("[]") + ")" + "\n**Total**: (" + str(resultTotal) + ")")
     await ctx.message.delete()
 
-@bot.command()
+@bot.command(aliases=['wagons', 'wagon'])
 async def w(ctx, *args):
     """Drops the current amount of levitating wagons"""
     global casualties
@@ -454,20 +455,21 @@ async def w(ctx, *args):
         elif ctx.author.id == 417072424320761876:
             saver = "Belagorn"
         elif ctx.author.id == 128440902468370432:
-            saver = "Luck I guess"
+            saver = "Someone"
         elif ctx.author.id == 250389319884210196:
             saver = "The God"
         else:
             saver = ctx.author.display_name
-        unaSaves = random.randint(0, resultTotal)
-        totalDead = (resultTotal - unaSaves)
+        savePerc = random.randint(0, 100)
+        totalDead = (resultTotal * (savePerc * 0.01))
+        unaSaves = resultTotal - totalDead
         casualties -= unaSaves
         if unaSaves == resultTotal:
-            await ctx.send("Dropped wagons: " + str(wagons) + "\nCollateral damage: (" + str(resultTotal) + ") \n" + saver + " manages to save: (" + str(unaSaves) + "). Holy fuck! \nTotal dead: (" + str(totalDead) + "). BUFF " + saver + ".")
+            await ctx.send("Dropped wagons: " + str(wagons) + "\nCollateral damage: (" + str(resultTotal) + ") \n" + saver + " manages to save: (" + str(int(unaSaves)) + "). Holy fuck! \nTotal dead: (" + str(int(totalDead)) + "). BUFF " + saver + ".")
         elif unaSaves == 0:
-            await ctx.send("Dropped wagons: " + str(wagons) + "\nCollateral damage: (" + str(resultTotal) + ") \n" + saver + " manages to save: (" + str(unaSaves) + "). \nTotal dead: (" + str(totalDead) + ").  Wake up, " + saver + ".")
+            await ctx.send("Dropped wagons: " + str(wagons) + "\nCollateral damage: (" + str(resultTotal) + ") \n" + saver + " manages to save: (" + str(int(unaSaves)) + "). \nTotal dead: (" + str(int(totalDead)) + ").  Wake up, " + saver + ".")
         else:
-            await ctx.send("Dropped wagons: " + str(wagons) + "\nCollateral damage: (" + str(resultTotal) + ") \n" + saver + " manages to save: (" + str(unaSaves) + "). Nice. \nTotal dead: (" + str(totalDead) + "). Good job " + saver + ".")
+            await ctx.send("Dropped wagons: " + str(wagons) + "\nCollateral damage: (" + str(resultTotal) + ") \n" + saver + " manages to save: (" + str(int(unaSaves)) + "). Nice. \nTotal dead: (" + str(int(totalDead)) + "). Good job " + saver + ".")
         await ctx.message.delete()
         una = True
 
@@ -501,7 +503,7 @@ async def date(ctx):
 @bot.command(aliases=['bw'])
 async def bubblewrap (ctx):
     line = "||pop|| ||pop|| ||pop|| ||pop|| \n"
-    await ctx.send("Have some bubble warp: \n" + line + line + line + line)
+    await ctx.send("Have some bubble wrap: \n" + line + line + line + line)
 
 async def background_loop():
     await bot.wait_until_ready()
@@ -515,7 +517,10 @@ async def background_loop():
     while True:
         wagons += random.randint(1,10)
         randMsg = random.randint(1, 9)
-        #randMsg = 8
+        user = choice(guild.members)
+        print(str(user))
+
+
         if randMsg == 1:
             await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= str(wagons) + " wagons levitating."))
         elif randMsg == 2:
@@ -529,18 +534,15 @@ async def background_loop():
             else:
                 await bot.change_presence(activity=discord.Game(name="Gwent again and losing."))
         elif randMsg == 5:
-            user = choice(guild.members)
             await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= "{}".format(user.display_name)))
         elif randMsg == 6:
-            user = choice(guild.members)
             await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= "{}".format(user.display_name) +  " from afar ( ͡◉ ͜ʖ ͡◉)"))
         elif randMsg == 7:
-            user = choice(guild.members)
             await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= "{}".format(user.display_name) + " levitating."))
         elif randMsg == 8:
             await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= "ALL THE " + str(wagons) + " WAGONS CRASHING TOWARDS THE GROUND."))
         elif randMsg == 9:
-            await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name = "the silence of " + str(casualties) + " dead bodies."))
+            await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name = "the silence of " + str(int(casualties)) + " dead bodies."))
         else:
             print("randmsg = " + str(randMsg) + ", it gave an error")
         await asyncio.sleep(120) #Sleep for x before updating
@@ -554,7 +556,7 @@ async def background_loop():
             
 async def writeWagons():
     f = open("casualties.txt", "w")
-    f.write(str(casualties)) 
+    f.write(str(int(casualties))) 
     f.close()
 
 async def readWagons():
@@ -563,16 +565,19 @@ async def readWagons():
     casualties = int(f.read())
 
 async def checkTime():
-    await bot.wait_until_ready()
-    while not bot.is_closed():
+    sent = False
+    while True:
         now = datetime.now()
         current_time = now.strftime("%H:%M")
         #print("Current Time =", current_time)
 
-        if(current_time == '04:20'):  # check if matches with the desired time
-            print('sending message')
+        if (current_time == '04:20') and (sent == False):  # check if matches with the desired time
+            print('Blazing it!')
             channel = bot.get_channel(632372863495700519)
             await channel.send("Blaze it.")
+            sent = True
+        else:
+            sent = False
         await asyncio.sleep(60)
 
 bot.run(TOKEN)
