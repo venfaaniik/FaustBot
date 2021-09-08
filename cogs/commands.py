@@ -33,7 +33,7 @@ class Commands(commands.Cog):
                 ]
         await ctx.send(random.choice(possible_responses))
 
-
+## my deranged way to sign dates on art. Used for annoying certain friends for now.
     @commands.command(name = 'date', hidden = True)
     async def date(self, ctx):
         date = int(datetime.today().strftime('%Y%m%d'))

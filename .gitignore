@@ -6,6 +6,7 @@
 deps/
 assets/
 archive/
+TOKEN.txt
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

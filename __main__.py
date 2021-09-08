@@ -18,10 +18,10 @@ intents.members = True
 intents.presences = True
 bot = commands.Bot(command_prefix=PREFIX, intents=intents)
 
-TOKEN = "NzMwNDQyODExNzY5NDg3NDIw.XwXj4Q.-o7Uj-M-yyI0u3uUpI46DPPCiyI"
+TOKEN = open("TOKEN.txt","r").read()
 
-wagons = 0
-casualties = 0
+#wagons = 0
+#casualties = 0
 
 
 # Below cogs represents our folder our cogs are in. Following is the file name. So 'meme.py' in cogs, would be cogs.meme
@@ -136,17 +136,6 @@ async def say(ctx, *, message):
     else:
         await ctx.send("Sorry sweetheart, can't do it for you")
     await ctx.message.delete()
-
-#do it like that you can requets for others' playlists too
-# @bot.command()
-# async def playlist(ctx, arg):
-#     """Gives Faust playlists kek"""
-#     if arg=="youtube":
-#         await ctx.send("https://www.youtube.com/playlist?list=PLQhLL9WuSGAZA-V3mRK6YQYJO_7VWlylV")
-#     elif arg == "spotify":
-#         await ctx.send("https://open.spotify.com/playlist/4K31hkykN1DyYacH5vlJnG")
-#     else:
-#         await ctx.send("The command is playlist youtube/spotify")
     
 @bot.command()
 async def info(ctx, user: discord.Member):
@@ -160,7 +149,7 @@ async def info(ctx, user: discord.Member):
     else:
         await ctx.send("You must mention a user!")
 
-#dice throw test
+#dice throw, simple
 @bot.command(name='roll', aliases=['r'])
 async def roll(ctx, dice: str):
     """Roll NdN"""
@@ -179,7 +168,7 @@ async def roll(ctx, dice: str):
     await ctx.send("{0.mention}\n".format(ctx.author) + "**Roll:** " + dice + " (" + str(rollsList).replace("'", "").strip("[]") + ")" + "\n**Total:** (" + str(resultTotal) + ")")
     await ctx.message.delete()
 
-#higher
+# cheat for higher rolls
 @bot.command(hidden = True)
 async def roII(ctx, dice: str):
     """High roll-cheat"""
@@ -188,6 +177,7 @@ async def roII(ctx, dice: str):
     cheat = 1
     try: 
         rolls, limit = map(int, dice.split('d'))
+        # works only for the author/Void
         if ctx.author.id == 128440902468370432:
              cheat = random.randint(1, limit)
     except Exception:
@@ -205,7 +195,7 @@ async def roII(ctx, dice: str):
     await ctx.send("{0.mention}\n".format(ctx.author) + "**Roll:** " + dice + " (" + str(rollsList).replace("'", "").strip("[]") + ")" + "\n**Total:** (" + str(resultTotal) + ")")
     await ctx.message.delete()
 
-#lower
+#cheat for lower rolls
 @bot.command(hidden = True)
 async def rolI(ctx, dice: str):
     """Low roll-cheat"""
@@ -214,6 +204,7 @@ async def rolI(ctx, dice: str):
     cheat = 1
     try: 
         rolls, limit = map(int, dice.split('d'))
+        # works only for the author/Void
         if ctx.author.id == 128440902468370432:
              cheat = random.randint(-limit+1, 0)
     except Exception:
@@ -230,6 +221,10 @@ async def rolI(ctx, dice: str):
     rollsList = bolding(rollsList, limit)
     await ctx.send("{0.mention}\n".format(ctx.author) + "**Roll:** " + dice + " (" + str(rollsList).replace("'", "").strip("[]") + ")" + "\n**Total:** (" + str(resultTotal) + ")")
     await ctx.message.delete()
+
+
+    ### a relict from the past. ###
+# ------------------------------------------------- #
 
 # @bot.command(aliases=['wagons', 'wagon'])
 # async def w(ctx, *args):
@@ -280,6 +275,16 @@ async def rolI(ctx, dice: str):
 
 #     await writeWagons()
 
+# async def writeWagons():
+#     f = open("casualties.txt", "w")
+#     f.write(str(int(casualties))) 
+#     f.close()
+
+# async def readWagons():
+#     f = open("casualties.txt", "r")
+#     global casualties
+#     casualties = int(f.read())
+
 def bolding(rollList, limit):
     tempList = []
     i = 0
@@ -292,33 +297,24 @@ def bolding(rollList, limit):
             tempList.append(rollList[i])
         i += 1
     return tempList
-            
-async def writeWagons():
-    f = open("casualties.txt", "w")
-    f.write(str(int(casualties))) 
-    f.close()
 
-async def readWagons():
-    f = open("casualties.txt", "r")
-    global casualties
-    casualties = int(f.read())
+# doesn't work anymore.
+# async def checkTime():
+#     await bot.wait_until_ready()
+#     while not bot.is_closed:
+#         sent = False
+#         while True:
+#             now = datetime.now()
+#             current_time = now.strftime("%H:%M")
+#             #print("Current Time =", current_time)
 
-async def checkTime():
-    await bot.wait_until_ready()
-    while not bot.is_closed:
-        sent = False
-        while True:
-            now = datetime.now()
-            current_time = now.strftime("%H:%M")
-            #print("Current Time =", current_time)
-
-            if (current_time == '04:20') and (sent == False):  # check if matches with the desired time
-                print('Blazing it!')
-                channel = bot.get_channel(632372863495700519)
-                await channel.send("Blaze it.")
-                sent = True
-            else:
-                sent = False
-            await asyncio.sleep(60)
+#             if (current_time == '04:20') and (sent == False):  # check if matches with the desired time
+#                 print('Blazing it!')
+#                 channel = bot.get_channel(632372863495700519)
+#                 await channel.send("Blaze it.")
+#                 sent = True
+#             else:
+#                 sent = False
+#             await asyncio.sleep(60)
 
 bot.run(TOKEN, bot=True, reconnect=True)
