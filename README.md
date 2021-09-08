@@ -1,5 +1,7 @@
 # Faust-bot
 
 Todo:
-- This ReadMe
+- this ReadMe
 - inventory management for the ttrpg
+- code cleanup
+- commenting code
